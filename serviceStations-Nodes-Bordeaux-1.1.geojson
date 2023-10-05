@@ -1,0 +1,17 @@
+{
+"type": "FeatureCollection",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "id": "way/131996042", "@id": "way/131996042", "barrier": null, "fixme": null, "highway": "services", "name": "Aire de Thouars Sud", "toilets": "yes" }, "geometry": { "type": "Point", "coordinates": [ -0.595167840508061, 44.785731629978834 ] } },
+{ "type": "Feature", "properties": { "id": "way/131996046", "@id": "way/131996046", "barrier": null, "fixme": null, "highway": "services", "name": "Aire de Thouars Nord", "toilets": null }, "geometry": { "type": "Point", "coordinates": [ -0.594943707197586, 44.786422651838116 ] } },
+{ "type": "Feature", "properties": { "id": "way/388950897", "@id": "way/388950897", "barrier": null, "fixme": null, "highway": "services", "name": "Relais de Gironde", "toilets": null }, "geometry": { "type": "Point", "coordinates": [ -0.666978906886188, 44.84994982039224 ] } },
+{ "type": "Feature", "properties": { "id": "way/548238819", "@id": "way/548238819", "barrier": null, "fixme": null, "highway": "services", "name": "Relais d'Aquitaine", "toilets": null }, "geometry": { "type": "Point", "coordinates": [ -0.667704522106388, 44.850949136178102 ] } },
+{ "type": "Feature", "properties": { "id": "way/657290417", "@id": "way/657290417", "barrier": null, "fixme": "Vérifier les noms, ne correspondent pas avec ceux des stations-essence", "highway": "services", "name": "Aire d'Aquitaine 2", "toilets": "yes" }, "geometry": { "type": "Point", "coordinates": [ -0.579636418608714, 44.887507398941807 ] } },
+{ "type": "Feature", "properties": { "id": "way/657290419", "@id": "way/657290419", "barrier": null, "fixme": "Vérifier les noms, ne correspondent pas avec ceux des stations-essence", "highway": "services", "name": "Aire d'Aquitaine 1", "toilets": "yes" }, "geometry": { "type": "Point", "coordinates": [ -0.579645858261027, 44.888135409955744 ] } },
+{ "type": "Feature", "properties": { "id": "way/1018760167", "@id": "way/1018760167", "barrier": null, "fixme": null, "highway": "services", "name": null, "toilets": null }, "geometry": { "type": "Point", "coordinates": [ -0.610364730088817, 44.777170034855736 ] } },
+{ "type": "Feature", "properties": { "id": "way/1018760500", "@id": "way/1018760500", "barrier": null, "fixme": null, "highway": "services", "name": null, "toilets": null }, "geometry": { "type": "Point", "coordinates": [ -0.595003636932711, 44.775682859578353 ] } },
+{ "type": "Feature", "properties": { "id": "way/1018760929", "@id": "way/1018760929", "barrier": null, "fixme": null, "highway": "services", "name": null, "toilets": null }, "geometry": { "type": "Point", "coordinates": [ -0.548223478661565, 44.816916366172528 ] } },
+{ "type": "Feature", "properties": { "id": "way/1018761865", "@id": "way/1018761865", "barrier": null, "fixme": null, "highway": "services", "name": null, "toilets": null }, "geometry": { "type": "Point", "coordinates": [ -0.516966546643455, 44.880601450254744 ] } },
+{ "type": "Feature", "properties": { "id": "node/5296506241", "@id": "node/5296506241", "barrier": "gate", "fixme": null, "highway": null, "name": null, "toilets": null }, "geometry": { "type": "Point", "coordinates": [ -0.6673383, 44.8494597 ] } }
+]
+}

@@ -1,0 +1,33 @@
+get data from Open street Map via overpass turbo. (https://overpass-turbo.eu/)
+
+!!ONLY FOR BORDEAUX
+
+## getting the Highway nodes:
+==> street-Nodes-Bordeaux.geojason
+
+[out:json];
+area[name="Bordeaux"];
+(
+  way(area)["highway"~"^(motorway|trunk)$"];
+  //way(area)["highway"="services"];
+  //way(area)["highway"="rest_area"];
+  >;
+);
+out;
+
+
+## getting the possible chager positions:
+==>serviceStations-Bordeaux.geojason
+
+[out:json];
+area[name="Bordeaux"];
+(
+  //way(area)["highway"~"^(motorway|trunk)$"];
+  way(area)["highway"="services"];
+  way(area)["highway"="rest_area"];
+  >;
+);
+/*added by auto repair*/
+(._;>;);
+/*end of auto repair*/
+out;
