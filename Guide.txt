@@ -7,13 +7,20 @@
             ==> serviceStations-Nodes-Bordeaux-1.1.geojson
         2.1.2 deleate unessesary data
             ==> serviceStations-Nodes-Bordeaux-1.2.geojson
-	2.4.3 deleate unusable Service stations
-	    ==> serviceStations-Nodes-Bordeaux-1.3.geojson
+	    2.4.3 deleate unusable Service stations
+	        ==> serviceStations-Nodes-Bordeaux-1.3.geojson
+
     2.2 street-Nodes
-	2.2.1 get only the nessesary data
-	    ==> 
-    2.3 generate a graph with the servicestation nodes and calculate the lenght (with Floyd-Warschal-Algorithm)
-	- 
+        2.2.1 get only the nessesary data
+            ==> 
+
+    2.3 generate a graph with the servicestation nodes and calculate the lenght 
+        - find the neares street
+        - recursiv in the right direction
+        
+
+    2.4 compute the shortes Path with Floyd-Warschal-Algorithm
+        - 
 
 
 

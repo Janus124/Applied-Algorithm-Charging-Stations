@@ -97,39 +97,6 @@ def save_geodataframe_to_geojson(gdf, output_file):
     except Exception as e:
         print(f"Error saving GeoDataFrame to {output_file}: {str(e)}")
 
-    """
-    Extracts and simplifies data from a GeoJSON-like dictionary containing point geometries.
-
-    Args:
-        geojson_data (dict): The input GeoJSON-like dictionary.
-
-    Returns:
-        gpd.GeoDataFrame: A simplified GeoDataFrame with 'id', 'x', and 'y' columns for each point feature.
-    """
-    # Create empty lists to store extracted data
-    ids = []
-    x_coords = []
-    y_coords = []
-
-    # Iterate through the data
-    for index, row in gdf.iterrows():
-        properties = row['properties']
-        ids.append(properties.get('id'))
-
-        coords = row['geometry']
-        x_coords.append(coords.get('coordinates'))[0]
-        y_coords.append(coords.get('coordinates'))[1]
-
-    # add the x and y together
-    points = [Point(x, y) for x, y in zip(x_coords, y_coords)]
-
-    # create a dictionary for the data
-    data = {'id' : ids, 'geometry' : points}
-
-    # create a GeoDataFrame
-    returngdf = gpd.GeoDataFrame(data, crs="EPSG:4326")
-
-    return returngdf
 
 #deleate unessesary data from pands geoDataframe
 def sort_geodata(gdf):
@@ -162,7 +129,7 @@ def sort_geodata(gdf):
 
     return(new_gdf)
 
-#calculates the distance between two points using habersines euation (in Meter)
+#calculates the distance between two points using habersines euation (in km)
 def getLenght(a : Point, b: Point):
     # Radius of the Earth in kilometers
     R = 6371.0
@@ -186,6 +153,7 @@ def getLenght(a : Point, b: Point):
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     distance = R * c
 
+    #print(f"distance: {distance}")
     return distance
 
 def deleate_Nodes_alone(gdf):
@@ -194,9 +162,13 @@ def deleate_Nodes_alone(gdf):
     for index, row in gdf.iterrows():
         point = row["geometry"]
         for otherindex, otherrow in gdf.iterrows():
-            otherPoint = row["geometry"]
+            if(index == otherindex):
+                continue
+            otherPoint = otherrow["geometry"]
+            #print(f"Point: {point}, otherPoint: {otherPoint}")
             lenght = getLenght(point, otherPoint)
-            if(lenght > 60000):
+            #print(f"lenght: {lenght}")
+            if(lenght > 60):
                 gdf = gdf.drop(index)
                 print(f"Service Station {str(index)} was deleated")
                 break
@@ -240,7 +212,12 @@ if dataframe is not None:
 
     #print(dataframe_sorted.head())
     '''
+#--------------------------------------
+    load_1_2 = load_geojson_to_dataframe("serviceStations-Nodes-Bordeaux-1.2.geojson")
+    modyfied_1_2 = deleate_Nodes_alone(load_1_2)
+    save_geodataframe_to_geojson(modyfied_1_2, "serviceStations-Nodes-Bordeaux-1.3.geojson")
 
-    print(getLenght(Point([-0.5322387, 44.8095587]), getLenght([-0.5323854, 44.8098697])))
+
+    #print(getLenght(Point([ 0,0 ]), Point([50.0359, 00])))
 
     
