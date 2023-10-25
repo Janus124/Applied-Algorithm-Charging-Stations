@@ -11,12 +11,15 @@
 	        ==> serviceStations-Nodes-Bordeaux-1.3.geojson
 
     2.2 street-Nodes
-        2.2.1 get only the nessesary data
-            ==> 
+        2.2.1 merge near junction nodes (100m) into one
+            ==> street-Nodes-Bordeaux-1.1.geojson
+        
 
     2.3 generate a graph with the servicestation nodes and calculate the lenght 
         - find the neares street
-        - recursiv in the right direction
+        - recursiv in the right direction, add the lenght. If over 60km, break
+
+    2.4 search if there is a not conected subgraph
         
 
     2.4 compute the shortes Path with Floyd-Warschal-Algorithm
@@ -24,11 +27,5 @@
 
 
 
-
-
-	    ==> serviceStations-Nodes-Bordeaux-1.3.geojson
-	    ==> create-road-graph.py (with the lenght calculation
 	
             
-        - calculate the central node for every Polygon
-        - if two nodes are nearer than 150m, merge them
