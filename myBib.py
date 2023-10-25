@@ -110,3 +110,36 @@ def plot_geo_dataframe(gdf, title="Map", legend_title="Legend", xlabel="Longitud
     # Show the plot
     if display:
         plt.show()
+
+#Calculate the average point from a list of points with x and y coordinates.
+def calculate_average_point(points):
+    """
+    Calculate the average point from a list of points with x and y coordinates.
+
+    Args:
+        points (list of tuple): List of (x, y) coordinate tuples.
+
+    Returns:
+        Point: The average point based on the input coordinates.
+    """
+    if not points:
+        return None
+
+    # Calculate the average x and y coordinates
+    avg_x = sum(p[0] for p in points) / len(points)
+    avg_y = sum(p[1] for p in points) / len(points)
+
+    return Point(avg_x, avg_y)
+
+
+
+
+
+
+
+
+
+
+
+
+

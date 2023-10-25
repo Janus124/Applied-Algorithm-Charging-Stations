@@ -1,46 +1,9 @@
 import geopandas as gpd
-from shapely.geometry import Polygon, Point, MultiPolygon, GeometryCollection
+from shapely.geometry import Polygon, Point, MultiPolygon, GeometryCollection, LineString, MultiPoint
 import pandas as pd
 from shapely.wkt import loads
 import math
-
-#Load GeoJSON data from a file into a GeoDataFrame.
-def load_geojson_to_dataframe(file_path):
-    """
-    Load GeoJSON data from a file into a GeoDataFrame.
-
-    Args:
-        file_path (str): The path to the GeoJSON file.
-
-    Returns:
-        gpd.GeoDataFrame: A GeoDataFrame containing the GeoJSON data.
-    """
-    try:
-        gdf = gpd.read_file(file_path)
-        return gdf
-    except FileNotFoundError:
-        print(f"File not found: {file_path}")
-        return None
-
-#Calculate the average point from a list of points with x and y coordinates.
-def calculate_average_point(points):
-    """
-    Calculate the average point from a list of points with x and y coordinates.
-
-    Args:
-        points (list of tuple): List of (x, y) coordinate tuples.
-
-    Returns:
-        Point: The average point based on the input coordinates.
-    """
-    if not points:
-        return None
-
-    # Calculate the average x and y coordinates
-    avg_x = sum(p[0] for p in points) / len(points)
-    avg_y = sum(p[1] for p in points) / len(points)
-
-    return Point(avg_x, avg_y)
+import myBib as my
 
 def convert_geometries_to_points(geom):
     if isinstance(geom, Polygon):
@@ -82,22 +45,6 @@ def convert_polygons_to_points(gdf):
 
     return gdf_with_points
 
-#Save a GeoDataFrame to a GeoJSON file.
-def save_geodataframe_to_geojson(gdf, output_file):
-    """
-    Save a GeoDataFrame to a GeoJSON file.
-
-    Args:
-        gdf (gpd.GeoDataFrame): The GeoDataFrame to be saved.
-        output_file (str): The path to the output GeoJSON file.
-    """
-    try:
-        gdf.to_file(output_file, driver="GeoJSON")
-        print(f"GeoDataFrame saved to {output_file}")
-    except Exception as e:
-        print(f"Error saving GeoDataFrame to {output_file}: {str(e)}")
-
-
 #deleate unessesary data from pands geoDataframe
 def sort_geodata(gdf):
     """
@@ -129,32 +76,6 @@ def sort_geodata(gdf):
 
     return(new_gdf)
 
-#calculates the distance between two points using habersines euation (in km)
-def getLenght(a : Point, b: Point):
-    # Radius of the Earth in kilometers
-    R = 6371.0
-
-    #get Coordinates
-    lat1 = a.x
-    lon1 = a.y
-    lat2 = b.x
-    lon2 = b.y
-
-    # Convert latitude and longitude from degrees to radians
-    lat1_rad = math.radians(lat1)
-    lon1_rad = math.radians(lon1)
-    lat2_rad = math.radians(lat2)
-    lon2_rad = math.radians(lon2)
-
-    # Haversine formula
-    dlon = lon2_rad - lon1_rad
-    dlat = lat2_rad - lat1_rad
-    a = math.sin(dlat / 2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    distance = R * c
-
-    #print(f"distance: {distance}")
-    return distance
 
 def deleate_Nodes_alone(gdf):
     #check for every Point, if there is another Point nearer than 60 km
@@ -179,11 +100,11 @@ def deleate_Nodes_alone(gdf):
 
 # Example usage:
 file_path = 'serviceStations-Nodes-Bordeaux.geojson'
-dataframe = load_geojson_to_dataframe(file_path)
+dataframe = my.load_geojson_to_dataframe(file_path)
 
 #Print Dataframe
 if dataframe is not None:
-    '''
+    
     # You can now work with the loaded GeoDataFrame
     print(f"Loaded GeoJSON data into a GeoDataFrame from {file_path}.")
     print(dataframe.head())  # Print the first few rows of the DataFrame
@@ -211,7 +132,7 @@ if dataframe is not None:
     save_geodataframe_to_geojson(dataframe_sorted, "serviceStations-Nodes-Bordeaux-1.2.geojson")
 
     #print(dataframe_sorted.head())
-    '''
+    
 #--------------------------------------
     load_1_2 = load_geojson_to_dataframe("serviceStations-Nodes-Bordeaux-1.2.geojson")
     modyfied_1_2 = deleate_Nodes_alone(load_1_2)
