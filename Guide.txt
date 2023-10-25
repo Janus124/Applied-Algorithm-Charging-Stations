@@ -3,26 +3,36 @@
 2. Polisch data
 
     2.1 service serviceStations
-        2.1.1 convert all Polygons to positions
-            ==> serviceStations-Nodes-Bordeaux-1.1.geojson
+        2.1.0 bevore
+            ==> service-Stations-Bordeaux-1.0.geojson
+            ==> service-Stations-bordeaux-1.0.pdf
+        2.1.1 convert all Polygons to Points
+            ==> service-Stations-Bordeaux-1.1.geojson
+            ==> service-Stations-bordeaux-1.1.pdf
         2.1.2 deleate unessesary data
-            ==> serviceStations-Nodes-Bordeaux-1.2.geojson
-	    2.4.3 deleate unusable Service stations
-	        ==> serviceStations-Nodes-Bordeaux-1.3.geojson
+            ==> service-Stations-Bordeaux-1.2.geojson
+            ==> service-Stations-bordeaux-1.2.pdf
+	    2.4.3 deleate unusable Service stations(to fare away and clusters)
+            ==> service-Stations-Bordeaux-1.3.geojson
+            ==> service-Stations-bordeaux-1.3.pdf
 
     2.2 street-Nodes
-        2.2.1 merge near junction nodes (100m) into one
+        2.2.0 bevore
+            ==> street-Nodes-Bordeaux-1.0.geojson
+            ==> street-Nodes-Bordeaux-1.0.png
+        2.2.1 merge near junction nodes (250m) into one
             ==> street-Nodes-Bordeaux-1.1.geojson
+            ==> street-Nodes-Bordeaux-1.1.png
         
-
+--------------toDo-------------------
     2.3 generate a graph with the servicestation nodes and calculate the lenght 
-        - find the neares street
+        - find the neares street point
         - recursiv in the right direction, add the lenght. If over 60km, break
 
     2.4 search if there is a not conected subgraph
         
 
-    2.4 compute the shortes Path with Floyd-Warschal-Algorithm
+    2.5 compute the shortes Path with Floyd-Warschal-Algorithm
         - 
 
 
