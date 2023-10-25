@@ -83,8 +83,7 @@ modified_dataframe = modify_dataframe1(dataframe)
 # save the dataframe
 my.save_geodataframe_to_geojson(modified_dataframe,"street-Nodes-Bordeaux-1.1.geojson" )
 
-my.plot_geo_dataframe(dataframe, legend_title="aaaaaaaaaaaaaa")
-my.plot_geo_dataframe(dataframe, to_pdf="street-Nodes-Bordeaux")
-my.plot_geo_dataframe(modified_dataframe, to_pdf="street-Nodes-bordeaux-1.1")
+my.plot_geo_dataframe_highway(dataframe, to_pdf="street-Nodes-Bordeaux")
+my.plot_geo_dataframe_highway(modified_dataframe, to_pdf="street-Nodes-bordeaux-1.1")
 
 

@@ -84,7 +84,7 @@ def get_Lenght(a : Point, b: Point):
     return distance
 
 #plots the graph ( if to_pdf has a name also to pdf)
-def plot_geo_dataframe(gdf, title="Map", legend_title="Legend", xlabel="Longitude", ylabel="Latitude", legend=True, to_pdf='', display=False):
+def plot_geo_dataframe_highway(gdf, title="Map", legend_title="Legend", xlabel="Longitude", ylabel="Latitude", legend=True, to_pdf='', display=False):
     # Create a plot
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
     
@@ -100,6 +100,36 @@ def plot_geo_dataframe(gdf, title="Map", legend_title="Legend", xlabel="Longitud
     if legend:
         ax.get_legend().set_bbox_to_anchor((1.3, 1))
     
+    # Save the plot as a PDF in the "pdfs" folder if 'to_pdf' is not empty
+    if to_pdf:
+        pdf_path = os.path.join('pdfs', to_pdf)
+        if not pdf_path.endswith(".pdf"):
+            pdf_path += ".pdf"
+        plt.savefig(pdf_path, bbox_inches='tight', pad_inches=0)
+
+    # Show the plot
+    if display:
+        plt.show()
+
+
+def plot_geo_datafram_service_stations(gdf, title="Map", legend_title="Legend", xlabel="Longitude", ylabel="Latitude", legend=True, to_pdf='', display=False):
+    # get Points
+    points = gdf['geometry']
+
+    #Create a plot
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+
+    #Plot the points
+    gdf.plot(column='geometry', ax=ax, color='blue', markersize=10, legend=legend, legend_kwds={'title': legend_title})
+    #gdf.plot(column='geometry', ax=ax, legend=legend, legend_kwds={'title': legend_title})
+
+
+    # Set plot title and axis labels
+    print(f"###########################{title}")
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
     # Save the plot as a PDF in the "pdfs" folder if 'to_pdf' is not empty
     if to_pdf:
         pdf_path = os.path.join('pdfs', to_pdf)
@@ -132,14 +162,123 @@ def calculate_average_point(points):
     return Point(avg_x, avg_y)
 
 
+load_1_1 = load_geojson_to_dataframe("serviceStations-Nodes-Bordeaux-1.1.geojson")
+
+plot_geo_datafram_service_stations(load_1_1, display=True)
 
 
 
 
+'''
+def plot_test(data, title="Map", xlabel="Longitude", ylabel="Latitude", to_pdf='', display=False):
+    # Convert the GeoJSON-like data to a GeoDataFrame
+    print("1")
+    print(data)
+    gdf = gpd.GeoDataFrame.from_features(data["features"])
+    print("2")
+    print(gdf)
+    
+    # Filter the GeoDataFrame to include only service stations
+    #service_stations = gdf[gdf["properties.highway"] == "services"]
+    service_stations = gdf
+    # Create a plot
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    
+    # Plot the service stations
+    service_stations.plot(ax=ax, marker="o", color="red", markersize=5, label="Service Stations")
+    
+    # Set plot title and axis labels
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
 
+    # Add a legend
+    ax.legend()
 
+    # Save the plot as a PDF in the "pdfs" folder if 'to_pdf' is not empty
+    if to_pdf:
+        pdf_path = os.path.join('pdfs', to_pdf)
+        if not pdf_path.endswith(".pdf"):
+            pdf_path += ".pdf"
+        plt.savefig(pdf_path, bbox_inches='tight', pad_inches=0)
 
+    # Show the plot
+    if display:
+        plt.show()
 
+def testing(data, title="Map", legend_title="Legend", xlabel="Longitude", ylabel="Latitude", legend=True, to_pdf='', display=False):
+    # Create a plot
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    
+    # Plot the GeoDataFrame
+    data.plot(column='geometry', ax=ax, legend=legend, legend_kwds={'title': legend_title})
+    
+    # Set plot title and axis labels
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    
+    # Display the legend
+    if legend:
+        ax.get_legend().set_bbox_to_anchor((1.3, 1))
+    
+    # Save the plot as a PDF in the "pdfs" folder if 'to_pdf' is not empty
+    if to_pdf:
+        pdf_path = os.path.join('pdfs', to_pdf)
+        if not pdf_path.endswith(".pdf"):
+            pdf_path += ".pdf"
+        plt.savefig(pdf_path, bbox_inches='tight', pad_inches=0)
 
+    # Show the plot
+    if display:
+        plt.show()
+
+def plot_test2(data, title="Map", legend_title="Legend", xlabel="Longitude", ylabel="Latitude", legend=True, to_pdf='', display=False):
+    
+    print("start")
+    temp = list(data['geometry'])
+    x_coords, y_coords = zip(*temp)
+    print(f"x: {x_coords}, y: {y_coords}")
+
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+
+    plt.plot(x_coords, y_coords, ax=ax, legend=legend, legend_kwds={'title': legend_title})
+
+    plt.plot()
+
+    print("end")
+    return
+
+    
+    # Create a plot)
+    print(f"test2: {data}")
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    
+    # Plot the GeoDataFrame
+    data.plot(ax=ax, marker='o', color='red', markersize=5)  # Customize the marker style and color
+    
+    # Set plot title and axis labels
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    
+    # Display the legend
+    if legend:
+        ax.get_legend().set_bbox_to_anchor((1.3, 1))
+    
+    # Save the plot as a PDF in the "pdfs" folder if 'to_pdf' is not empty
+    if to_pdf:
+        pdf_path = os.path.join('pdfs', to_pdf)
+        if not pdf_path.endswith(".pdf"):
+            pdf_path += ".pdf"
+        plt.savefig(pdf_path, bbox_inches='tight', pad_inches=0)
+
+    # Show the plot
+    if display:
+        plt.show()
+
+        
+
+'''
 
 

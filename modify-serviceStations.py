@@ -76,10 +76,30 @@ def sort_geodata(gdf):
 
     return(new_gdf)
 
+def merge_near_service_stations(gdf, max_lenght=0.250):
+
+    for index, row in gdf.iterrows():
+        point = row["geometry"]
+        id = row['id']
+        for otherindex, otherrow in gdf.iterrows():
+            if(index == otherindex):
+                continue
+            otherPoint = otherrow["geometry"]
+            otherid = otherrow['id']
+
+            currlen = my.get_Lenght(point, otherPoint)
+            if(currlen < max_lenght):
+                gdf = my.delete_element_by_id(gdf, id)
+                print(f"deleated, beacuse len={len}")
+                break
+                
+    return gdf
+
+
 
 def deleate_Nodes_alone(gdf):
     #check for every Point, if there is another Point nearer than 60 km
-
+    print(len(gdf))
     for index, row in gdf.iterrows():
         point = row["geometry"]
         for otherindex, otherrow in gdf.iterrows():
@@ -87,58 +107,80 @@ def deleate_Nodes_alone(gdf):
                 continue
             otherPoint = otherrow["geometry"]
             #print(f"Point: {point}, otherPoint: {otherPoint}")
-            lenght = getLenght(point, otherPoint)
+            lenght = my.get_Lenght(point, otherPoint)
             #print(f"lenght: {lenght}")
             if(lenght > 60):
                 gdf = gdf.drop(index)
                 print(f"Service Station {str(index)} was deleated")
                 break
-        
+    print(len(gdf))
     return gdf
 
+def testing(gdf):
+    for index, row in gdf.iterrows():
+        point = row["geometry"]
+        for otherindex, otherrow in gdf.iterrows():
+            if(index == otherindex):
+                continue
+            otherPoint = otherrow["geometry"]
+            print(f"lenght: {my.get_Lenght(point, otherPoint)}")
 
+    
 
 # Example usage:
 file_path = 'serviceStations-Nodes-Bordeaux.geojson'
 dataframe = my.load_geojson_to_dataframe(file_path)
-
+#my.plot_geo_datafram_service_stations(dataframe, to_pdf="serviceStations-Nodes-Bordeaux", display=True)
+'''
 #Print Dataframe
 if dataframe is not None:
     
     # You can now work with the loaded GeoDataFrame
     print(f"Loaded GeoJSON data into a GeoDataFrame from {file_path}.")
-    print(dataframe.head())  # Print the first few rows of the DataFrame
+    #print(dataframe.head())  # Print the first few rows of the DataFrame
     # Perform further analysis or modifications as needed
 
     # Convert Polygons to Points
     dataframe_with_points = convert_polygons_to_points(dataframe)
     
     # Print the first few rows of the modified GeoDataFrame
-    print(dataframe_with_points.head())
+    #print(dataframe_with_points.head())
 
 
     ##save the dataframe(converted to points)
-    save_geodataframe_to_geojson(dataframe_with_points,"serviceStations-Nodes-Bordeaux-1.1.geojson" )
+    my.save_geodataframe_to_geojson(dataframe_with_points,"serviceStations-Nodes-Bordeaux-1.1.geojson" )
+    
+    #my.plot_geo_datafram_service_stations(dataframe_with_points, title="1.1", to_pdf="serviceStations-Nodes-Bordeaux-1.1", )
 
 #-------------------------------------
-    load_1_1 = load_geojson_to_dataframe("serviceStations-Nodes-Bordeaux-1.1.geojson")
+    load_1_1 = my.load_geojson_to_dataframe("serviceStations-Nodes-Bordeaux-1.1.geojson")
 
     #deleate unessesary data
     dataframe_sorted = sort_geodata(load_1_1)
 
     print("Dataframe:")
-    print(dataframe_sorted)
+    #print(dataframe_sorted)
     print("-------------")
-    save_geodataframe_to_geojson(dataframe_sorted, "serviceStations-Nodes-Bordeaux-1.2.geojson")
+    my.save_geodataframe_to_geojson(dataframe_sorted, "serviceStations-Nodes-Bordeaux-1.2.geojson")
+    print("1")
+    print(dataframe_sorted.columns)
 
+    my.plot_geo_datafram_service_stations(dataframe_sorted, title="serviceStations-Nodes-Bordeaux-1.2", to_pdf="serviceStations-Nodes-Bordeaux-1.2", display=True)
     #print(dataframe_sorted.head())
-    
-#--------------------------------------
-    load_1_2 = load_geojson_to_dataframe("serviceStations-Nodes-Bordeaux-1.2.geojson")
-    modyfied_1_2 = deleate_Nodes_alone(load_1_2)
-    save_geodataframe_to_geojson(modyfied_1_2, "serviceStations-Nodes-Bordeaux-1.3.geojson")
+'''
 
+'''
+#--------------------------------------
+    load_1_2 = my.load_geojson_to_dataframe("serviceStations-Nodes-Bordeaux-1.2.geojson")
+    modyfied_1_2 = deleate_Nodes_alone(load_1_2)
+    my.save_geodataframe_to_geojson(modyfied_1_2, "serviceStations-Nodes-Bordeaux-1.3.geojson")
+    my.plot_geo_dataframe_service_stations(modyfied_1_2, to_pdf="serviceStations-Nodes-Bordeaux-1.3", display=True)
 
     #print(getLenght(Point([ 0,0 ]), Point([50.0359, 00])))
+'''
 
-    
+load_1_2 = my.load_geojson_to_dataframe("serviceStations-Nodes-Bordeaux-1.2.geojson")
+
+fin = merge_near_service_stations(load_1_2)
+my.save_geodataframe_to_geojson(fin, "serviceStations-Nodes-Bordeaux-1.4.geojson")
+my.plot_geo_datafram_service_stations(fin, title="serviceStations-Nodes-Bordeaux-1.3", to_pdf="serviceStations-Nodes-Bordeaux-1.3")
