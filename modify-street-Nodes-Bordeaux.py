@@ -35,7 +35,7 @@ def get_Points_of_row(target_row):
 
 
 #merges junctions to one node
-def modify_dataframe1(gdf):    
+def merge_junctions(gdf):    
 # deleate all motorway_junction elements if there is a motorway_junction element nearer than distance(100m)  
     
     deleated_counter = 0
@@ -71,19 +71,32 @@ def modify_dataframe1(gdf):
     
 
 file_path = "street-Nodes-Bordeaux.geojson"
-dataframe = my.load_geojson_to_dataframe(file_path)
+name ="Bordeaux"
+dataframe1 = my.load_geojson_to_dataframe(file_path)
 
-if dataframe is None:
+if dataframe1 is None:
     print("failure, no datafarme")
     exit(-1)
 
-modified_dataframe = modify_dataframe1(dataframe)
+#save and print
+file_name = "street-Nodes-" + name + "-1.0"
+my.save_geodataframe_to_geojson(dataframe1, file_name)
+my.plot_geo_dataframe_highway(dataframe1, title=file_name, to_pdf=file_name, )
+
+#merge junctions to one point
+dataframe2 = merge_junctions(dataframe1)
+
+#save and print
+file_name = "street-Nodes-" + name + "-1.1"
+my.save_geodataframe_to_geojson(dataframe2, file_name)
+my.plot_geo_dataframe_highway(dataframe2, title=file_name, to_pdf=file_name, )
 
 
+'''
 # save the dataframe
 my.save_geodataframe_to_geojson(modified_dataframe,"street-Nodes-Bordeaux-1.1.geojson" )
 
 my.plot_geo_dataframe_highway(dataframe, to_pdf="street-Nodes-Bordeaux")
 my.plot_geo_dataframe_highway(modified_dataframe, to_pdf="street-Nodes-bordeaux-1.1")
 
-
+'''

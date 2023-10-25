@@ -34,8 +34,11 @@ def save_geodataframe_to_geojson(gdf, output_file):
         output_file (str): The path to the output GeoJSON file.
     """
     try:
-        gdf.to_file(output_file, driver="GeoJSON")
-        print(f"GeoDataFrame saved to {output_file}")
+        output_path = os.path.join('data', output_file)
+        if not output_path.endswith(".geojson"):
+            output_path += ".geojson"
+        gdf.to_file(output_path, driver="GeoJSON")
+        print(f"GeoDataFrame saved to {output_path}")
     except Exception as e:
         print(f"Error saving GeoDataFrame to {output_file}: {str(e)}")
 
@@ -102,7 +105,7 @@ def plot_geo_dataframe_highway(gdf, title="Map", legend_title="Legend", xlabel="
     
     # Save the plot as a PDF in the "pdfs" folder if 'to_pdf' is not empty
     if to_pdf:
-        pdf_path = os.path.join('pdfs', to_pdf)
+        pdf_path = os.path.join('pdf', to_pdf)
         if not pdf_path.endswith(".pdf"):
             pdf_path += ".pdf"
         plt.savefig(pdf_path, bbox_inches='tight', pad_inches=0)
@@ -110,7 +113,6 @@ def plot_geo_dataframe_highway(gdf, title="Map", legend_title="Legend", xlabel="
     # Show the plot
     if display:
         plt.show()
-
 
 def plot_geo_datafram_service_stations(gdf, title="Map", legend_title="Legend", xlabel="Longitude", ylabel="Latitude", legend=True, to_pdf='', display=False):
     # get Points
@@ -125,14 +127,13 @@ def plot_geo_datafram_service_stations(gdf, title="Map", legend_title="Legend", 
 
 
     # Set plot title and axis labels
-    print(f"###########################{title}")
     ax.set_title(title)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
     # Save the plot as a PDF in the "pdfs" folder if 'to_pdf' is not empty
     if to_pdf:
-        pdf_path = os.path.join('pdfs', to_pdf)
+        pdf_path = os.path.join('pdf', to_pdf)
         if not pdf_path.endswith(".pdf"):
             pdf_path += ".pdf"
         plt.savefig(pdf_path, bbox_inches='tight', pad_inches=0)
@@ -161,10 +162,6 @@ def calculate_average_point(points):
 
     return Point(avg_x, avg_y)
 
-
-load_1_1 = load_geojson_to_dataframe("serviceStations-Nodes-Bordeaux-1.1.geojson")
-
-plot_geo_datafram_service_stations(load_1_1, display=True)
 
 
 

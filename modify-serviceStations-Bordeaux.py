@@ -99,7 +99,6 @@ def merge_near_service_stations(gdf, max_lenght=0.250):
 
 def deleate_Nodes_alone(gdf):
     #check for every Point, if there is another Point nearer than 60 km
-    print(len(gdf))
     for index, row in gdf.iterrows():
         point = row["geometry"]
         for otherindex, otherrow in gdf.iterrows():
@@ -111,25 +110,54 @@ def deleate_Nodes_alone(gdf):
             #print(f"lenght: {lenght}")
             if(lenght > 60):
                 gdf = gdf.drop(index)
-                print(f"Service Station {str(index)} was deleated")
+                #print(f"Service Station {str(index)} was deleated")
                 break
-    print(len(gdf))
     return gdf
-
-def testing(gdf):
-    for index, row in gdf.iterrows():
-        point = row["geometry"]
-        for otherindex, otherrow in gdf.iterrows():
-            if(index == otherindex):
-                continue
-            otherPoint = otherrow["geometry"]
-            print(f"lenght: {my.get_Lenght(point, otherPoint)}")
 
     
 
-# Example usage:
+#set file path and Name
 file_path = 'serviceStations-Nodes-Bordeaux.geojson'
-dataframe = my.load_geojson_to_dataframe(file_path)
+name = "Bordeaux"
+dataframe1 = my.load_geojson_to_dataframe(file_path)
+
+if dataframe1 is None:
+    print("Error, not dataframe given")
+    exit(-1)
+print(f"Loaded GeoJSON data into a GeoDataFrame from {file_path}.")
+  
+#print graph with polygons
+file_name = "service-Stations-" + name + "-1.0"
+my.save_geodataframe_to_geojson(dataframe1, file_name )
+my.plot_geo_datafram_service_stations(dataframe1, title=file_name, to_pdf=file_name, )
+
+# Convert Polygons to Points
+dataframe2 = convert_polygons_to_points(dataframe1)
+
+#save and print
+file_name = "service-Stations-" + name + "-1.1"
+my.save_geodataframe_to_geojson(dataframe2, file_name )
+my.plot_geo_datafram_service_stations(dataframe2, title=file_name, to_pdf=file_name, )
+
+#deleate unessesary data
+dataframe3 = sort_geodata(dataframe2)
+
+#save and print
+file_name = "service-Stations-" + name + "-1.2"
+my.save_geodataframe_to_geojson(dataframe3, file_name )
+my.plot_geo_datafram_service_stations(dataframe3, title=file_name, to_pdf=file_name, )
+
+#delete nodes alone and merge clusters
+dataframe4 = deleate_Nodes_alone(dataframe3)
+dataframe5 = merge_near_service_stations(dataframe4)
+
+#save and print
+file_name = "service-Stations-" + name + "-1.3"
+my.save_geodataframe_to_geojson(dataframe5, file_name )
+my.plot_geo_datafram_service_stations(dataframe5, title=file_name, to_pdf=file_name, )
+
+
+
 #my.plot_geo_datafram_service_stations(dataframe, to_pdf="serviceStations-Nodes-Bordeaux", display=True)
 '''
 #Print Dataframe
@@ -178,9 +206,10 @@ if dataframe is not None:
 
     #print(getLenght(Point([ 0,0 ]), Point([50.0359, 00])))
 '''
-
+'''
 load_1_2 = my.load_geojson_to_dataframe("serviceStations-Nodes-Bordeaux-1.2.geojson")
 
 fin = merge_near_service_stations(load_1_2)
 my.save_geodataframe_to_geojson(fin, "serviceStations-Nodes-Bordeaux-1.4.geojson")
 my.plot_geo_datafram_service_stations(fin, title="serviceStations-Nodes-Bordeaux-1.3", to_pdf="serviceStations-Nodes-Bordeaux-1.3")
+'''

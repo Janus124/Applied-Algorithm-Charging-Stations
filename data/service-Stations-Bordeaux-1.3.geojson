@@ -1,6 +1,5 @@
 {
 "type": "FeatureCollection",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
 { "type": "Feature", "properties": { "id": "way/131996046" }, "geometry": { "type": "Point", "coordinates": [ -0.594943707197586, 44.786422651838116 ] } },
 { "type": "Feature", "properties": { "id": "way/657290419" }, "geometry": { "type": "Point", "coordinates": [ -0.579645858261027, 44.888135409955744 ] } },
