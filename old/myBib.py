@@ -22,7 +22,18 @@ def load_geojson_to_dataframe(file_path):
         return gdf
     except FileNotFoundError:
         print(f"File not found: {file_path}")
-        return None
+    
+    '''try: 
+        file_path = os.path.join('data', file_path)
+        gdf = gpd.read_file(file_path)
+        return gdf
+    exept:
+        print(f"File not found: {file_path}, searching in folder")
+        return -1
+
+    
+    print(f"File not found: {file_path}")
+    return None'''
     
 #Save a GeoDataFrame to a GeoJSON file.
 def save_geodataframe_to_geojson(gdf, output_file):
@@ -162,6 +173,23 @@ def calculate_average_point(points):
 
     return Point(avg_x, avg_y)
 
+#retruns the coordinates of point or LineString of a row of gdf
+def get_Points_of_row(target_row):
+    if target_row.empty:
+        return None  # ID not found
+    #print(f"type: {type(target_row['geometry'])}, {target_row['geometry']}")
+    
+    geo = target_row['geometry']
+
+    if isinstance(geo, Point):
+        #point
+        return list(geo)
+    elif isinstance(geo, LineString):
+        #lineString
+        return list(geo.coords)
+    else:
+        print("Error in get_points_of_row, no Points")
+        return -1
 
 
 
