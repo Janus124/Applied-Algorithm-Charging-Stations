@@ -921,7 +921,7 @@ print(G)
 print("-----------------------------------")
 print(f"len: {len(node_coordinates)}, {len(G)}")
 # # Plot the graph with node labels as coordinates
-#?nx.draw(G, pos=node_coordinates, with_labels=False, node_color='skyblue', labels={k: str(v) for k, v in node_coordinates.items()})
+nx.draw(G, pos=node_coordinates, with_labels=False, node_color='skyblue', labels={k: str(v) for k, v in node_coordinates.items()})
 # nx.draw_networkx_edge_labels(G, pos=node_coordinates, edge_labels=edge_labels)
 plt.show()
 
@@ -936,7 +936,7 @@ node_coordinates = {node_id: coords for node_id, coords in all_nodes.items()}
 plt.figure(figsize=(10, 8))  # You can adjust the size as needed
 
 # Plot the graph with smaller node sizes (e.g., node_size=100) and larger plot
-#?nx.draw(G, pos=node_coordinates, with_labels=False, node_size=100, node_color='skyblue')
+nx.draw(G, pos=node_coordinates, with_labels=False, node_size=100, node_color='skyblue')
 
 
 
