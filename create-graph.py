@@ -27,36 +27,10 @@ def save_json_data(data, file_path):
 def get_coords(id, nodes):
     
     #find the node with the 'own_id'
-    row = next((node for node in nodes if node['own_id'] == id), None)
+    row = next((node for node in nodes if node['id'] == id), None)
 
     #returns the lat and long
     return(row['lat'], row['lon'])
-
-
-#splits the json_data and returns a touple (nodes, highway, service)
-def split_array(json_data):
-    
-    nodes = []
-    highway = []
-    service = []
-
-    for el in json_data["elements"]:
-        #is a node
-        if el["type"] == "node":
-            nodes.append(el)
-
-        #is a way, than check if service station and rest_area or motorway and trunk 
-        elif el["type"] == "way":
-            tags = el["tags"]
-            if tags["highway"] == "motorway" or tags["highway"] == "trunk":
-                highway.append(el)
-            elif tags["highway"] == "services" or tags["highway"] == "rest_area":
-                service.append(el)
-            else:
-                print("ERROR: There shouldn't be another highway exempt the 4.")
-        else:
-            print("ERROR: There shouldn't be another type (exept node and way)")
-    return (nodes, highway, service)  
 
 #calculates the distance between two points and returns the distance in km
 def get_distance(lat1, lon1, lat2, lon2):
@@ -79,6 +53,42 @@ def get_distance(lat1, lon1, lat2, lon2):
     #return distance in km
     return distance
 
+#splits the json_data and returns a touple (nodes, ways)
+def split_array_service_stations(json_data):
+    
+    ways = []
+    nodes = []
+
+    for el in json_data["elements"]:
+        if el["type"] == "node":
+            nodes.append(el)
+
+
+        elif el["type"] == "way":
+            ways.append(el)
+
+        else:
+            print("ERROR: There shouldn't be another type (exept node and way)")
+    return (nodes, ways)  
+  
+#splits the json_data and returns a touple (nodes, highway)
+def split_array_highway(json_data):
+    
+    nodes = []
+    highway = []
+
+    for el in json_data["elements"]:
+        #is a node
+        if el["type"] == "node":
+            nodes.append(el)
+
+        elif el["type"] == "way":
+            highway.append(el)
+        else:
+            print("ERROR: There shouldn't be another type (exept node and way)")
+    return (nodes, highway)  
+
+
 
 
 def merge_area_to_point(service, nodes):
@@ -95,8 +105,8 @@ def merge_area_to_point(service, nodes):
             lons.append(lon)
         
         #calculate centroid
-        centroid_lat = sum(lats) / len(lat)
-        centroid_lon = sum(lon) / len(lons)
+        centroid_lat = sum(lats) / len(lats)
+        centroid_lon = sum(lons) / len(lons)
         centroids.append((centroid_lat, centroid_lon))
 
     #deleate centroids, which are nearer than 0,2m
@@ -110,21 +120,65 @@ def merge_area_to_point(service, nodes):
 
     return sorted_centroids
 
-def add_service_to_highway(nods, highway)
+
+def add_service_to_highway(nodes_highway, service):
+    marked_street_nodes = []
+    for lat, lon in service:
+
+        #find narest point in nodes
+        neares_id = ""
+        neares_distance = 900 #km
+        for el in nodes_highway:
+            distance = get_distance(lat, lon, el['lat'], el['lon'])
+            if(distance < neares_distance):
+                neares_id = el['id']
+        
+        #add nearest point to the marked list
+        marked_street_nodes.append(neares_id)
+    
+    return marked_street_nodes
+    
+
+def delete_usless_highway_nodes(way_highway, marked_nodes):
+    #for every street
+    for el in way_highway:
+        #chech each point, if its a marked one, if not delete
+        marked_ids = []
+        for node_id in el['nodes']:
+            #check if nodes are marked, if yes add to list
+            if node_id in marked_nodes:
+                marked_ids.append(node_id)
+        #reset list of nodes on the highway to only the marked ones
+        el['nodes'] = marked_ids  
+    return way_highway
+        
+        
+    
 
 
         
 
-filepath = "all_nodes-Aquitaine.json"
-json_data = load_json_data(filepath)
+filepath_service = "service-stations-Aquitaine.json"
+json_data_service = load_json_data(filepath_service)
 
-#nodes is a list of dict containing all nodes
-#highway is a list of dict, containing all ways for highways
-#service is a list of dict, containing all ways for restareas
-nodes, highway, service = split_array(json_data)
+filepath_highway = "street-Nodes-Aquitaine.json"
+json_data_highway = load_json_data(filepath_service)
 
-#service is a list of points
-service = merge_area_to_point(service)
+
+#nodes_... is a list of dict containing all nodes (of that type)
+#way is a list of dict containing all ways of streets or rest areas
+nodes_service, way_service = split_array_service_stations(json_data_service)
+nodes_highway, way_highway = split_array_highway(json_data_highway)
+
+#service is a list of points (lat, lon)
+service = merge_area_to_point(way_service, nodes_service)
+
+#merge to nearest street node
+#marked_street_nodes are a list of nodes_highway, which were the clostest to a rest area
+marked_street_nodes = add_service_to_highway(nodes_highway, service)
+
+#contains the highways, but only with the marked street nodes. The street nodes which are service stations
+highway_only_marked = delete_usless_highway_nodes(nodes_highway, way_highway, marked_street_nodes)
 
 
 
