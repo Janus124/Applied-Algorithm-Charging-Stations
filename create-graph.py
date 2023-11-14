@@ -22,75 +22,43 @@ def save_json_data(data, file_path):
     # Save the dictionary to a file
     with open(f"{file_path}", "w") as f:
         json.dump(data, f)
+    
+#returns a touple of (lat, lon)
+def get_coords(id, nodes):
+    
+    #find the node with the 'own_id'
+    row = next((node for node in nodes if node['own_id'] == id), None)
 
+    #returns the lat and long
+    return(row['lat'], row['lon'])
+
+
+#splits the json_data and returns a touple (nodes, highway, service)
 def split_array(json_data):
     
-    ways = []
     nodes = []
+    highway = []
+    service = []
 
     for el in json_data["elements"]:
+        #is a node
         if el["type"] == "node":
             nodes.append(el)
 
-
+        #is a way, than check if service station and rest_area or motorway and trunk 
         elif el["type"] == "way":
-            ways.append(el)
-
+            tags = el["tags"]
+            if tags["highway"] == "motorway" or tags["highway"] == "trunk":
+                highway.append(el)
+            elif tags["highway"] == "services" or tags["highway"] == "rest_area":
+                service.append(el)
+            else:
+                print("ERROR: There shouldn't be another highway exempt the 4.")
         else:
             print("ERROR: There shouldn't be another type (exept node and way)")
-    return (ways, nodes)    
+    return (nodes, highway, service)  
 
-'''
-def rename(ways, nodes):
-
-    i = 0
-    counter = 0
-    for el in nodes:
-
-        oldid = el['id']
-        el['id'] = i
-        newid = i
-        #print(f"changed id from {oldid} to {i}")
-        
-        #change the number in the ways-dic
-        for el in ways:
-            wayid = el['id']
-            #print(el)
-            for id in el["nodes"]:
-                #print(f"{el['id']} , {id}")
-                #print(f"id={id}, oldid:{oldid}, newid:{newid}")
-                if id == oldid:
-                    print (f"id changed from {oldid} to {newid}")
-                    counter+=1
-                    #print(ways['id' == el['id]']])
-                    id = newid        
-        
-        i += 1
-    print(counter)
-    return (ways, nodes)
-
-def create_ways_array_old(ways):
-
-    edges = []
-
-    for el in ways:
-        nodes = el['nodes']
-        num = len(nodes)
-        for i in range (0, num-1):
-            edges.append((nodes[i], nodes[i+1]))
-    
-    #print(edges)
-    return edges
-
-'''
-
-def add_own_id(nodes):
-    i = 0
-    for el in nodes:
-        el['own_id'] = i
-        i += 1
-    return nodes
-
+#calculates the distance between two points and returns the distance in km
 def get_distance(lat1, lon1, lat2, lon2):
 
     R = 6371.0
@@ -111,127 +79,54 @@ def get_distance(lat1, lon1, lat2, lon2):
     #return distance in km
     return distance
 
-def get_position(id, nodes):
-    
-    #find the node with the 'own_id'
-    row = next((node for node in nodes if node['own_id'] == id), None)
-
-    #returns the lat and long
-    return(row['lat'], row['lon'])
-
-def create_edges_array(nodes, ways):
-
-    #get all edges    
-    edges = []
-    for el in ways:
-        way_nodes = el['nodes']
-        num = len(way_nodes)
-        for i in range (0, num-1):
-            overpass_id_a = int(way_nodes[i])
-            overpass_id_b = int(way_nodes[i+1])
-            anode = next((node for node in nodes if node['id'] == overpass_id_a), None)
-            bnode = next((node for node in nodes if node['id'] == overpass_id_b), None)
-            
-            aid = anode['own_id']
-            bid = bnode['own_id']
-            edges.append((aid, bid))
-    
-
-    #deleate doube edges
-    unique_edges = []
-    for edge in edges:
-            if edge not in unique_edges and (edge[1], edge[0]) not in unique_edges:
-                unique_edges.append(edge)
-
-    #get lenght of edges
-    unique_distance_edges = []
-    #calculates the distance between two points using habersines euation (in km)
-    for a, b in unique_edges:
-        lata, lona = get_position(a, nodes)
-        latb, lonb = get_position(b, nodes)
-        distance = get_distance(lata, lona, latb, lonb)
-        unique_distance_edges.append((a, b, distance))
-    
-    #delete edges > 60km
-    final_edges = []
-    for a, b, dis in unique_distance_edges:
-        if dis < 60:
-            final_edges.append((a,b, dis))
-    
-    return final_edges
 
 
-def create_graph(nodes, edges):
+def merge_area_to_point(service, nodes):
 
-    #Create a graph 
-    g = nx.Graph()
+    #calcualte for every area the centroid
+    centroids = []
+    for el in service:
+        lats = []
+        lons = []
+        #get the coordinates for every node and add to list
+        for ids in el['nodes']:
+            lat, lon = get_coords(ids, nodes)
+            lats.append(lat)
+            lons.append(lon)
+        
+        #calculate centroid
+        centroid_lat = sum(lats) / len(lat)
+        centroid_lon = sum(lon) / len(lons)
+        centroids.append((centroid_lat, centroid_lon))
 
-    #add_nodes
-    for el in nodes:
-        #print(f"nodes: {el['own_id']}, pos=({el['lat']}, {el['lon']})")
-        g.add_node(el['own_id'], pos=(el['lat'], el['lon']))
+    #deleate centroids, which are nearer than 0,2m
+    sorted_centroids = []
+    for lat1, lon1 in centroids:
+        for lat2, lon2 in centroids:
+            if(get_distance(lat1, lon1, lat2, lon2) > 0,2):
+                #don't inclde point
+                break
+        sorted_centroids.append((lat1, lon1))
 
-    #add edges with distance
-    for el in edges:
-        #print(f"edges: {el[0]}, {el[1]}, {el[2]}")
-        g.add_edge(el[0], el[1], weight=el[2])
-    
-    # Extract node positions
-    node_positions = {node: (lon, lat) for node, (lat, lon) in nx.get_node_attributes(g, 'pos').items()}
+    return sorted_centroids
 
-    # Get the edgelist
-    edgelist = list(g.edges())
-
-    # Create a scatter plot of nodes
-    plt.figure(figsize=(8, 6))
-    nx.draw_networkx_nodes(g, pos=node_positions, node_size=200, node_color='blue', alpha=0.7)
-
-
-    # Draw edges with weights as labels
-    nx.draw_networkx_edges(g, pos=node_positions, edgelist=edgelist, width=2, alpha=0.5, edge_color='gray')
-    #edge_labels = nx.get_edge_attributes(g, 'weight')
-    #nx.draw_networkx_edge_labels(g, pos=node_positions, edge_labels=edge_labels)
-
-    # Display the plot
-    plt.title("Graph of Nodes in France")
-    plt.axis('off')  # Turn off axis labels
-    plt.show()
-
-def del_nodes_oudside(nodes):
-
-    paris = (48.8566, 2.3522)
-    max_distance = 900 #km
-    #every node has to be in a 900km radius around paris (to exclude the nodes in africe, america, ..)
-    
-    valid_nodes = []
-    for el in nodes:
-        pos = (el['lat'], el['lon'])
-        distance = get_distance(paris[0], paris[1], pos[0], pos[1])
-        if distance < 900:
-            valid_nodes.append(el)
-        else:
-            print(f"NOTE: Node was deleated because of distance: {distance}")
-
-    print(f"bevore: {len(nodes)}, after: {len(valid_nodes)}")
-    return valid_nodes
+def add_service_to_highway(nods, highway)
 
 
-def create_all(filepath):
+        
 
-    json_data = load_json_data(filepath)
-    ways, nodes = split_array(json_data)
+filepath = "all_nodes-Aquitaine.json"
+json_data = load_json_data(filepath)
 
-    nodes = add_own_id(nodes)
+#nodes is a list of dict containing all nodes
+#highway is a list of dict, containing all ways for highways
+#service is a list of dict, containing all ways for restareas
+nodes, highway, service = split_array(json_data)
 
-    nodes = del_nodes_oudside(nodes)
-    edges = create_edges_array(nodes, ways)
-
-    create_graph(nodes, edges)
+#service is a list of points
+service = merge_area_to_point(service)
 
 
-filepath = "service-stations-Aquitaine.json"
-create_all(filepath)
 
-filepath = "service-stations-France.json"
-#create_all(filepath)
+
 
