@@ -156,6 +156,7 @@ def delete_usless_highway_nodes(way_highway, marked_nodes):
             if node_id in marked_nodes:
                 
                 marked_ids.append(node_id)
+                print("appended")
         #reset list of nodes on the highway to only the marked ones
         el['nodes'] = marked_ids  
 
@@ -516,6 +517,7 @@ json_data_highway = load_json_data(filepath_highway)
 nodes_service, way_service = split_array_service_stations(json_data_service)
 nodes_highway, way_highway = split_array_highway(json_data_highway)
 
+print(way_highway[-5])
 #nodes_service: nodes of the edges of service sations
 # array of: {'type': 'node', 'id': 304610017, 'lat': 44.8883184, 'lon': -0.5799906}, {'type': 'node', 'id': 304610018, 'lat': 44.888388, 'lon': -0.5796747}
 #way_service: ways of the edges of service stations, ids only contain ids of nodes_service
@@ -540,37 +542,51 @@ marked_street_nodes = add_service_to_highway(nodes_highway, service)
 
 create_graph3(nodes_highway, [], marked_street_nodes)
 
-way_highway_only_marked = []
+
+#deleate all the not marked street nodes out of way_highway
+marked_ways = []
+#for every street
+for el in way_highway:
+    #chech each point, if its a marked one, if not delete
+    marked_ids = []
+    for node_id in el['nodes']:
+        #check if nodes are marked, if yes add to list
+        if node_id in marked_street_nodes:
+            
+            marked_ids.append(node_id)
+            print("appended")
+    #reset list of nodes on the highway to only the marked ones
+    if len(marked_ids) > 0:
+        marked_ways.append(marked_ids)  
+
+
+'''way_highway_only_marked = []
 for el in nodes_highway:
     if el['id'] in marked_street_nodes:
         way_highway_only_marked.append(el)
 
-#create_graph3(nodes_highway, [], marked_street_nodes)
+#way_highway_only_marked: array of dict: {'type': 'node', 'id': 638664, 'lat': 43.3410243, 'lon': -0.3775863, 'own_id': 282}
 
 #contains the highways, but only with the marked street nodes. The street nodes which are service stations
-#way_highway_only_marked = delete_usless_highway_nodes(way_highway, marked_street_nodes)
+#way_highway_only_marked2 = delete_usless_highway_nodes(way_highway, marked_street_nodes)
 
-i = 0
-for el in way_highway_only_marked:
-    if el['id'] in marked_street_nodes:
+print(way_highway[-5])
+print(way_highway_only_marked2[-5])'''
 
-        i += 1
-
-print(f"!!!!!!!!!!!!!!!! {i}")
-
-
+'''
 #create the edges with the own_ids
 edges_with_own_id = create_edges_array(nodes_highway, way_highway_only_marked)
 
 #create_graph2(nodes_highway, edges_with_own_id, service)
 #print_latlon(service)
 
+
 #list of all street nodes, which represent a rest area
 nodes_service_final = delete_useless_street_nodes_of_nodes_array(nodes_highway, marked_street_nodes)
 
 create_graph(nodes_service_final, edges_with_own_id)
 
-
+'''
 
 
 
