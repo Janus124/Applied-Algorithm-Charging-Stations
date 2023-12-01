@@ -32,6 +32,21 @@ def get_coords(id, nodes):
     #returns the lat and long
     return(row['lat'], row['lon'])
 
+def get_line(id, nodes):
+    row = next((node for node in nodes if node['id'] == id), None)
+
+    return row
+
+#return 1 if true, 0 if false
+def check_if_node_is_junction(id, nodes):
+    row = next((node for node in nodes if node['id'] == id), None)
+
+    if 'tags' in row:
+        tags = row['tags']
+        if 'highway' in tags and tags['highway'] == 'motorway_junction':            
+            return 1
+    return 0
+
 #calculates the distance between two points and returns the distance in km
 def get_distance(lat1, lon1, lat2, lon2):
 
@@ -124,9 +139,7 @@ def add_service_to_highway(nodes_highway, service):
 
     for lat, lon in service:
         # Find nearest point in nodes
-        nearest_id = ""
-        second_id = ""
-        third_id = ""
+        nearest_id = "" 
         nearest_distance = float('inf')  # Initialize with positive infinity
 
         for el in nodes_highway:
@@ -517,7 +530,6 @@ json_data_highway = load_json_data(filepath_highway)
 nodes_service, way_service = split_array_service_stations(json_data_service)
 nodes_highway, way_highway = split_array_highway(json_data_highway)
 
-print(way_highway[-5])
 #nodes_service: nodes of the edges of service sations
 # array of: {'type': 'node', 'id': 304610017, 'lat': 44.8883184, 'lon': -0.5799906}, {'type': 'node', 'id': 304610018, 'lat': 44.888388, 'lon': -0.5796747}
 #way_service: ways of the edges of service stations, ids only contain ids of nodes_service
@@ -534,6 +546,8 @@ service = merge_area_to_point(way_service, nodes_service)
 
 #adds own_id proporty, to sort easier
 nodes_highway = add_own_id(nodes_highway)
+#{'type': 'node', 'id': 10981442267, 'lat': 43.7195563, 'lon': -0.269957, 'own_id': 1}
+create_graph(nodes_highway, [])
 
 
 #merge to nearest street node
@@ -544,21 +558,27 @@ create_graph3(nodes_highway, [], marked_street_nodes)
 
 
 #deleate all the not marked street nodes out of way_highway
+#marked_ways is array of streets. every street is an array out of nodes
 marked_ways = []
+#junction_ids is an array of id of nodes, which aren't service stations, but rather junction nodes.
+junction_ids = []
 #for every street
 for el in way_highway:
     #chech each point, if its a marked one, if not delete
     marked_ids = []
     for node_id in el['nodes']:
+        #print(get_line(node_id, nodes_highway))
         #check if nodes are marked, if yes add to list
-        if node_id in marked_street_nodes:
-            
+        junc_check = check_if_node_is_junction(node_id, nodes_highway)
+        if node_id in marked_street_nodes or junc_check == 1:
+            if(junc_check == 1):
+                junction_ids.append(node_id)
+
             marked_ids.append(node_id)
-            print("appended")
     #reset list of nodes on the highway to only the marked ones
     if len(marked_ids) > 0:
         marked_ways.append(marked_ids)  
-
+print(marked_ways)
 
 '''way_highway_only_marked = []
 for el in nodes_highway:
