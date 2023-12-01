@@ -80,6 +80,7 @@ def merge_area_to_point(way_service, nodes_service): # service node
     #calcualte for every area the centroid
     centroids = []
     for el in way_service:
+        id = -1
         lats = []
         lons = []
         #get the coordinates for every node and add to list
@@ -156,7 +157,7 @@ def go_through_street(nodes_highway, way_highway, service_stations):
 
         street_id = el['id']
         
-        radius = 0.2
+        radius = 1
 
         #array of the points of a street
         street_nodes_ids = []
@@ -227,7 +228,6 @@ def go_through_street(nodes_highway, way_highway, service_stations):
 
 
         #get other street
-    save_json_data(street_data, 'your streets')
     print(street_data)
     return street_data
 
@@ -282,15 +282,28 @@ def create_graph4(nodes, ids, coords):
     # Create a graph
     g = nx.Graph()
 
-    '''# Add nodes
+    # Add nodes
+    sc = 0
     for el in nodes:
-        if el['id'] in ids and 'tags' in el and el['tags'] and 'highway' in el['tags'] and el['tags']['highway'] and not ('junction' in el['tags']['highway']):
+        if el['id'] in ids:
+            if 'tags' in el and el['tags'] and 'highway' in el['tags'] and el['tags']['highway'] and 'junction' in el['tags']['highway']:
+                #junction
+                g.add_node(el['id'], pos=(el['lat'], el['lon']), color='green')
+            else:
+                #service station
+                sc += 1
+                g.add_node(el['id'], pos=(el['lat'], el['lon']), color='red')
+
+               
+    print(sc)
+    '''    for el in nodes:
+        if el['id'] in ids: #and 'tags' in el and el['tags'] and 'highway' in el['tags'] and el['tags']['highway'] and not ('junction' in el['tags']['highway']):
             g.add_node(el['id'], pos=(el['lat'], el['lon']), color='red')
     '''
 
-    for i, (lat, lon) in enumerate(coords):
+    '''for i, (lat, lon) in enumerate(coords):
         g.add_node(i+424, pos=(lat, lon), color='blue')
-
+    '''
     
 
     # Extract node positions and colors
@@ -327,7 +340,7 @@ def temp(nodes_highway, our_data):
 
 
 
-filepath_service = "service-stations-Aquitaine.json"
+filepath_service = "export_1.json"
 json_data_service = load_json_data(filepath_service)
 
 filepath_highway = "street-Nodes-Aquitaine.json"
@@ -356,20 +369,38 @@ service = merge_area_to_point(way_service, nodes_service)
 
 
 
-#go_through_street(nodes_highway, way_highway, service)
+our_data = go_through_street(nodes_highway, way_highway, service)
+save_json_data(our_data, 'streets1-1.json')
 
 
-'''json_data = load_json_data('your-streets.json')
+json_data = load_json_data('streets1-1.json')
 
 filtered_streets = filter_own_streets(json_data)
 
-save_json_data(filtered_streets, 'your-street2.json')'''
+save_json_data(filtered_streets, 'streets2-1.json')
 
 
-json_data = load_json_data('your-street2.json')
+json_data = load_json_data('streets2-1.json')
 nodes_ids = temp(nodes_highway, json_data)
 
+
+
 create_graph4(nodes_highway, nodes_ids, service)
+
+print(len(service))
+print(len(set(nodes_ids)))
+
+num_service = 0
+num_juction = 0
+for id in nodes_ids:
+    el = get_line(id, nodes_highway)
+    if 'tags' in el and el['tags'] and 'highway' in el['tags'] and el['tags']['highway'] and 'junction' in el['tags']['highway']:
+        num_juction += 1
+    else:
+        num_service += 1
+
+
+print(f"junc:{num_juction}, ser:{num_service}")
 
 
 '''
