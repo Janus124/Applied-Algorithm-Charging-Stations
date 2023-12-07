@@ -2,6 +2,7 @@ import json
 import math
 import networkx as nx
 import matplotlib.pyplot as plt
+import numpy as np
 from mpl_toolkits.basemap import Basemap
 from collections import Counter
 
@@ -71,7 +72,8 @@ def get_coords(id, nodes):
 
 def get_line(id, nodes):
     row = next((node for node in nodes if node['id'] == id), None)
-
+    if(row == None):
+        print("Thats a Problem! No Line found")
     return row
 
 #returns the (lat, lon) of the centrois of every sercice station way
@@ -125,6 +127,15 @@ def get_distance(lat1, lon1, lat2, lon2):
     
     #return distance in km
     return distance
+
+def point_is_junction(row):
+    #point is juction
+    if 'tags' in row and row['tags'] and 'highway' in row['tags'] and row['tags']['highway']:
+        if 'junction' in row['tags']['highway']:
+            return True
+        
+    return False
+
 
 def go_through_street(nodes_highway, way_highway, service_stations):
 
@@ -285,7 +296,8 @@ def create_graph4(nodes, ids, coords):
     # Add nodes
     sc = 0
     for el in nodes:
-        if el['id'] in ids:
+        temp_id = el['id']
+        if temp_id in ids:
             if 'tags' in el and el['tags'] and 'highway' in el['tags'] and el['tags']['highway'] and 'junction' in el['tags']['highway']:
                 #junction
                 g.add_node(el['id'], pos=(el['lat'], el['lon']), color='green')
@@ -295,7 +307,7 @@ def create_graph4(nodes, ids, coords):
                 g.add_node(el['id'], pos=(el['lat'], el['lon']), color='red')
 
                
-    print(sc)
+    
     '''    for el in nodes:
         if el['id'] in ids: #and 'tags' in el and el['tags'] and 'highway' in el['tags'] and el['tags']['highway'] and not ('junction' in el['tags']['highway']):
             g.add_node(el['id'], pos=(el['lat'], el['lon']), color='red')
@@ -334,11 +346,271 @@ def temp(nodes_highway, our_data):
 
     return important_node_ids
 
+'''#not finished  
+def merge_streets(own_data, nodes):
+    #Get the old_ids from the first element
+    li = []
+
+    temp = own_data[158] # id 830, merges with id 981
+    print(temp)
+    # Find elements with common old_ids
+    for el in own_data[1:]:
+        if temp['old_ids'][0] in el['old_ids'] or temp['old_ids'][1] in el['old_ids']:
+            for s in el['nodes']:
+                li.append(s)
+            print (el)
+    #matching_elements = [element for element in own_data[1:] if any(old_id in first_old_ids for old_id in element['old_ids'])]
+    for el in temp['nodes']:
+        li.append(el)
+    return li
+
+def merge_points_on_streets(own_data, nodes):
+
+    for i, street in enumerate(own_data):
+        new_list = []
+        new_list.append(street['nodes'][0])
+        for i in range (1, len(street['nodes'])):
+            lat, lon = get_coords(street['nodes'][i], nodes)
+            lat2, lon2 = get_coords(street['nodes'][i-1], nodes)
+            if(get_distance(lat, lon, lat2, lon2) > 1):  #1km
+                new_list.append(street['nodes'][i])
+
+        #safe the list
+        own_data[i]['nodes'] = new_list
+    
+    return own_data
+
+#doesn't work proporly
+def create_edges1(nodes, own_data):
+    #get all junction (for opimisation)
+    junction_array = []
+    street_array = []
+    for row in own_data:
+        if point_is_junction(row):
+            junction_array.append(row)
+        else:
+            street_array.append(row)
+
+    all_edges = []
+    #go through all streets
+    for street in own_data:
+        
+        #go through all nodes in the street
+        for i, street_id in enumerate(street['nodes']):
+            dis = 0
+
+            if i == len(street['nodes']):
+                #last element, no futher action needed
+                continue
+
+
+            #!!! street_node and next_street_node are youst ids
+            street_row = get_line(street_id, nodes)
+
+
+            next_street_id = street['nodes'][i]
+            next_street_row = get_line(next_street_id, nodes)
+            if(next_street_row == None):
+                print(next_street_id)
+
+
+            if(point_is_junction(street_row)):
+            #street_node is junction
+
+                if(point_is_junction(next_street_row)):
+                    #next node ist junction
+                    print("Please NOT!!!!!!")
+                    #TODO?
+
+
+                else:
+                    #next node is street_node
+                    
+                    dis_from_junction_to_next_node = get_distance(street_row['lat'], street_row['lon'], next_street_row['lat'], next_street_row['lon'])
+                    all_nodes_from_junction = get_all_nodes_from_junction(next_street_id, nodes, own_data)
+                    for junc_neighbour_id in all_nodes_from_junction:
+                        junc_node_row = get_line(junc_neighbour_id, junction_array)
+                        sec_dis = get_distance(street_row['lat'], street_row['lon'], junc_node_row['lat'], junc_node_row['lon'])
+                        all_edges.append(street_id, junc_neighbour_id, dis_from_junction_to_next_node + sec_dis)
+
+            else:
+            #street_node is street_node
+
+                if(point_is_junction(next_street_row)):
+                    #next node ist junction
+                    all_nodes_from_junction = get_all_nodes_from_junction(next_street_id, nodes, own_data)
+                    dis = get_distance(street_row['lat'], street_row['lon'], next_street_row['lat'], next_street_row['lon'])
+                    for junc_neighbour_id in all_nodes_from_junction:
+                        junc_node_row = get_line(junc_neighbour_id, junction_array)
+                        sec_dis = get_distance(next_street_row['lat'], next_street_row['lon'], junc_node_row['lat'], junc_node_row['lon'])
+                        all_edges.append(street_id, junc_neighbour_id, dis + sec_dis)
+
+                else:
+                    #next node is street_node
+                    dis = get_distance(street_row['lat'], street_row['lon'], next_street_row['lat'], next_street_row['lon'])
+                    all_edges.append((street_id, next_street_id, dis))
+
+
+     #deleate doube edges
+    unique_edges = []
+    unique_edges_without_dis = []
+    for edge in all_edges:
+            if edge not in unique_edges_without_dis and (edge[1], edge[0]) not in unique_edges_without_dis and edge[0] != edge[1]:
+                unique_edges.append(edge)
+                unique_edges.append[edge[0], edge[1]]
+
+    
+
+    
+    #delete edges > 60km
+    final_edges = []
+    for a, b, dis in unique_edges:
+        if dis < 60:
+            final_edges.append((a,b, dis))
+    
+    return final_edges
+
+
+    return all_edges
+
+
+
+def get_all_nodes_from_junction(junction_id, nodes, own_data):
+    all_nodes_ids= []
+    #TODO
+
+    #for all streets
+    for street in own_data:
+        before = []
+        now = []
+        after = []
+        for i in range (0, len(street['nodes'])):
+            now = street['nodes'][i]
+            #if el is the junction 
+            if(now['id'] == junction_id):
+
+                #if it is the first element
+                if i == 0:
+                    after = street['nodes'][i+1]
+                    all_nodes_ids.append(after)
+
+                #if it is the last element
+                elif i == len(street['nodes'] - 1):
+                    all_nodes_ids.append(now)
+
+
+                #if it is a middle element
+                else:
+                    after = now
+                    now = before
+                    before = street['nodes'][i+1]
+                    #now is the junction
+
+                    all_nodes_ids.append(before)
+                    all_nodes_ids.append(after)
+    
+    print(f"All found nodes from get_all_nodes_from_junction: \{all_nodes_ids}")
+
+    return all_nodes_ids
+
+def create_graph_with_edges(nodes, ids, edges):
+    # Create a graph
+    g = nx.Graph()
+
+    # Add nodes
+    sc = 0
+    for el in nodes:
+        temp_id = el['id']
+        if temp_id in ids:
+            if 'tags' in el and el['tags'] and 'highway' in el['tags'] and el['tags']['highway'] and 'junction' in el['tags']['highway']:
+                #junction
+                g.add_node(el['id'], pos=(el['lat'], el['lon']), color='green')
+            else:
+                #service station
+                sc += 1
+                g.add_node(el['id'], pos=(el['lat'], el['lon']), color='red')
+
+               
+    # Add edges with distance
+    for el in edges:
+        g.add_edge(el[0], el[1], weight=el[2])
+
+
+    
+
+    # Extract node positions and colors
+    node_positions = {node: (lon, lat) for node, (lat, lon) in nx.get_node_attributes(g, 'pos').items()}
+    node_colors = [g.nodes[node]['color'] for node in g.nodes]
+
+    # Get the edgelist
+    edgelist = list(g.edges())
+
+    # Create a scatter plot of nodes
+    plt.figure(figsize=(8, 6))
+    nx.draw_networkx_nodes(g, pos=node_positions, node_size=100, node_color=node_colors, alpha=0.7)
+
+    # Draw edges with weights as labels
+    nx.draw_networkx_edges(g, pos=node_positions, edgelist=edgelist, width=2, alpha=0.5, edge_color='gray')
+
+    # Display the plot
+    plt.title("Graph of Nodes")
+    plt.axis('off')  # Turn off axis labels
+    plt.show()
+
+#takes an array out of used nodes and edges
+#nodes = {'id = 1 , 'lat' = , 'lon'} no junctions
+#edges = (id1, id2, distance)
+#returns a array out of (id1, id2, dis, [points also on the path] )
+def floyd_warshall(nodes, edges, max_distance=60):
+
+    #add own id for table
+    i = 0
+    for node in nodes:
+        node['own_id'] = i
+
     
 
 
+    w, h = len(nodes), len(nodes)
+    dist = [[int('inf') for x in range(w)] for y in range(h)]
+    prev = [[0 for x in range(w)] for y in range(h)]
+
+    for edge in edges:
+        own_id1 = get_own_id_fw(edge[0], nodes)
+        own_id2 = get_own_id_fw(edge[1], nodes)
+
+        dist[own_id1, own_id2] = edge[2]
+        prev[own_id1, own_id2] = own_id1
+    
+    for node in nodes:
+        dist[node['own_id'], node['own_id']] = 0
+        prev[node['own_id'], node['own_id']] = node['own_id']
+
+    for k in range(1, len(nodes)):
+        for i in range(1, len(nodes)):
+            for j in range(1, len(nodes)):
+                if dist[i][j] > dist[i,k] + dist[k][j]:
+                    dist[i][j] = dist[i][k] + dist[k][j]
+                    prev[i][j] = prev[k][j]
+
+    #get path
+    
+def get_path_fw(u, v, dist, prev):
+    if prev[u][v] == 0:
+        return []
+    path = [v]
+    while ( u != v):
+        v = prev[u][v]
+        path.appent(v)
+    return path
 
 
+def get_own_id_fw(id, nodes):
+    #find the node with the 'own_id'
+    row = next((node for node in nodes if node['id'] == id), None)
+
+    return row['own_id']
+    '''
 
 filepath_service = "export_1.json"
 json_data_service = load_json_data(filepath_service)
@@ -369,7 +641,7 @@ service = merge_area_to_point(way_service, nodes_service)
 
 
 
-our_data = go_through_street(nodes_highway, way_highway, service)
+'''our_data = go_through_street(nodes_highway, way_highway, service)
 save_json_data(our_data, 'streets1-1.json')
 
 
@@ -377,16 +649,39 @@ json_data = load_json_data('streets1-1.json')
 
 filtered_streets = filter_own_streets(json_data)
 
-save_json_data(filtered_streets, 'streets2-1.json')
+save_json_data(filtered_streets, 'streets2-1.json')'''
 
 
 json_data = load_json_data('streets2-1.json')
 nodes_ids = temp(nodes_highway, json_data)
 
 
-
+#te = merge_streets(json_data, nodes_highway)
 create_graph4(nodes_highway, nodes_ids, service)
 
+
+new_own_data = merge_points_on_streets(json_data, nodes_highway)
+te = temp(nodes_highway, new_own_data)
+create_graph4(nodes_highway, te, service)
+
+all_edges = create_edges1(nodes_highway, new_own_data)
+print(all_edges)
+
+
+
+
+create_graph_with_edges(nodes_highway, te, all_edges)
+
+junction = 0
+street = 0
+for row in new_own_data:
+    if(point_is_junction(row)):
+        junction += 1
+    else:
+        street += 1
+        
+
+'''
 print(len(service))
 print(len(set(nodes_ids)))
 
@@ -401,7 +696,7 @@ for id in nodes_ids:
 
 
 print(f"junc:{num_juction}, ser:{num_service}")
-
+'''
 
 '''
 merge parralel streets
